@@ -78,7 +78,7 @@ module ActiveMerchant
           # cinfo_in_callback
           response = "#{response}|123456789|Test Persoon|Amsterdam" if ActiveMerchant::Billing::Base.test?
           if response.include?("|")
-            @response.params.each{|k,v| vars[k.to_sym] = v unless %w(transactionid url).include?(k)} if @response
+            @response.params.each{|k,v| vars[k.to_sym] = v unless %w(transactionid url).include?(k)}
             args = response[0..-1].split("|")
             vars[:account_number] = args[1]
             vars[:name] = args[2]
