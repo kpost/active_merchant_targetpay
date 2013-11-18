@@ -42,7 +42,10 @@ module ActiveMerchant
           :rtlo  => @options[:rtlo],
           :test  => ActiveMerchant::Billing::Base.test? ? "1" : "0",
           :trxid => token
-        }))
+        }), {
+          amount: @response.amount, 
+          description: @response.description
+        })
       end
       
       private
@@ -56,12 +59,11 @@ module ActiveMerchant
       end
       
       def build_response_start(response, extra_params={})
-        vars = {}
+        vars = extra_params
         message = response
         success = false
         if response[0..5] == "000000"
           success = true
-          vars = extra_params
           args = response[7..-1].split("|")
           vars[:transactionid] = args[0]
           vars[:url] = args[1]
@@ -69,10 +71,10 @@ module ActiveMerchant
         TargetpayIdealStartResponse.new(success, message, vars)
       end
       
-      def build_response_check(response)
+      def build_response_check(response, extra_params={})
         message = response
         success = false
-        vars = {}
+        vars = extra_params
         if response[0..5] == "000000"
           success = true
           # cinfo_in_callback
