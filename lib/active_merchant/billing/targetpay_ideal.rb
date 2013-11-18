@@ -17,7 +17,6 @@ module ActiveMerchant
         raise ArgumentError.new("Amount should be >= EUR 1,00")     if money < 100
         raise ArgumentError.new("Amount should be <= EUR 10000,00") if money > 1000000
         raise ArgumentError.new("Description should =~ /^[0-9A-Z]{1,32}$/i") if !(options[:description] =~ /^[0-9A-Z\ ]{1,32}$/i)
-        # raise ArgumentError.new("Description should =~ /^[0-9A-Z:]{1,90}$/i") if !(options[:description] =~ /^[0-9A-Z:\(\)\s\ ]{1,90}$/i)
 
         @response = build_response_start(commit('start', {
           :amount             => money,
@@ -79,7 +78,7 @@ module ActiveMerchant
           # cinfo_in_callback
           response = "#{response}|123456789|Test Persoon|Amsterdam" if ActiveMerchant::Billing::Base.test?
           if response.include?("|")
-            @response.params.each{|k,v| vars[k.to_sym] = v unless %w(transactionid url).include?(k)}
+            @response.params.each{|k,v| vars[k.to_sym] = v unless %w(transactionid url).include?(k)} if @response
             args = response[0..-1].split("|")
             vars[:account_number] = args[1]
             vars[:name] = args[2]
