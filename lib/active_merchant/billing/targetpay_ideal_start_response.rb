@@ -8,6 +8,7 @@ module ActiveMerchant #:nodoc:
       def url
         @params['url']
       end
+      
     end
   end
 end

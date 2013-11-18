@@ -17,15 +17,20 @@ module ActiveMerchant
         raise ArgumentError.new("Amount should be >= EUR 1,00")     if money < 100
         raise ArgumentError.new("Amount should be <= EUR 10000,00") if money > 1000000
         raise ArgumentError.new("Description should =~ /^[0-9A-Z]{1,32}$/i") if !(options[:description] =~ /^[0-9A-Z\ ]{1,32}$/i)
+        # raise ArgumentError.new("Description should =~ /^[0-9A-Z:]{1,90}$/i") if !(options[:description] =~ /^[0-9A-Z:\(\)\s\ ]{1,90}$/i)
 
         @response = build_response_start(commit('start', {
-          :amount      => money,
-          :bank        => options[:bank],
-          :description => CGI::escape(options[:description] || ""),
-          :reporturl   => options[:reporturl],
-          :returnurl   => options[:returnurl],
-          :rtlo        => @options[:rtlo]
-        }))
+          :amount             => money,
+          :bank               => options[:bank],
+          :description        => CGI::escape(options[:description] || ""),
+          :reporturl          => options[:reporturl],
+          :returnurl          => options[:returnurl],
+          :cinfo_in_callback  => options[:cinfo_in_callback] ? "1" : "0",
+          :rtlo               => @options[:rtlo]
+        }), {
+          amount: money, 
+          description: CGI::escape(options[:description] || "")
+        })
       end
       
       def redirect_url_for(token)
@@ -51,12 +56,13 @@ module ActiveMerchant
         http.get(uri.request_uri).body
       end
       
-      def build_response_start(response)
+      def build_response_start(response, extra_params={})
         vars = {}
         message = response
         success = false
         if response[0..5] == "000000"
           success = true
+          vars = extra_params
           args = response[7..-1].split("|")
           vars[:transactionid] = args[0]
           vars[:url] = args[1]
@@ -67,11 +73,20 @@ module ActiveMerchant
       def build_response_check(response)
         message = response
         success = false
+        vars = {}
         if response[0..5] == "000000"
           success = true
-        end        
-        TargetpayIdealCheckResponse.new(success, message)
-      end      
+          # cinfo_in_callback
+          response = "#{response}|123456789|Test Persoon|Amsterdam" if ActiveMerchant::Billing::Base.test?
+          if response.include?("|")
+            @response.params.each{|k,v| vars[k.to_sym] = v unless %w(transactionid url).include?(k)}
+            args = response[0..-1].split("|")
+            vars[:account_number] = args[1]
+            vars[:name] = args[2]
+          end
+        end
+        TargetpayIdealCheckResponse.new(success, message, vars)
+      end
     end
   end
 end
