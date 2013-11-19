@@ -9,14 +9,6 @@ module ActiveMerchant #:nodoc:
         @params['url']
       end
       
-      def amount
-        @params['amount']
-      end
-      
-      def description
-        @params['description']
-      end
-      
     end
   end
 end

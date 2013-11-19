@@ -26,10 +26,7 @@ module ActiveMerchant
           :returnurl          => options[:returnurl],
           :cinfo_in_callback  => options[:cinfo_in_callback] ? "1" : "0",
           :rtlo               => @options[:rtlo]
-        }), {
-          amount: money, 
-          description: CGI::escape(options[:description] || "")
-        })
+        }))
       end
       
       def redirect_url_for(token)
@@ -42,10 +39,7 @@ module ActiveMerchant
           :rtlo  => @options[:rtlo],
           :test  => ActiveMerchant::Billing::Base.test? ? "1" : "0",
           :trxid => token
-        }), {
-          amount: @response.amount, 
-          description: @response.description
-        })
+        }))
       end
       
       private
@@ -58,8 +52,8 @@ module ActiveMerchant
         http.get(uri.request_uri).body
       end
       
-      def build_response_start(response, extra_params={})
-        vars = extra_params
+      def build_response_start(response)
+        vars = {}
         message = response
         success = false
         if response[0..5] == "000000"
@@ -71,10 +65,10 @@ module ActiveMerchant
         TargetpayIdealStartResponse.new(success, message, vars)
       end
       
-      def build_response_check(response, extra_params={})
+      def build_response_check(response)
         message = response
         success = false
-        vars = extra_params
+        vars = {}
         if response[0..5] == "000000"
           success = true
           # cinfo_in_callback
